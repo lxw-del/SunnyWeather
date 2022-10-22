@@ -4,6 +4,10 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 
+/**
+ * 用于存储全局的一些信息
+ * 可以全局获取Context
+ */
 class SunnyWeatherApplication:Application() {
 
     companion object{
