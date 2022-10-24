@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.sunnyweather">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:name=".SunnyWeatherApplication"
         android:allowBackup="true"
@@ -9,7 +11,9 @@
         android:label="文艺天气"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SunnyWeather">
+        android:theme="@style/Theme.SunnyWeather"
+        android:usesCleartextTraffic="true"
+        >
         <activity
             android:name=".MainActivity"
             android:exported="true">
