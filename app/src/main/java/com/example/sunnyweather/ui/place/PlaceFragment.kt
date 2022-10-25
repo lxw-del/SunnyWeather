@@ -1,6 +1,7 @@
 package com.example.sunnyweather.ui.place
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sunnyweather.SunnyWeatherApplication
 import com.example.sunnyweather.databinding.FragmentPlaceBinding
 import com.example.sunnyweather.showToast
+import com.example.sunnyweather.ui.weather.WeatherActivity
 
 /**
  * 实现fragment的具体逻辑
@@ -47,6 +49,21 @@ class PlaceFragment:Fragment() {
         requireActivity().lifecycle.addObserver(object : LifecycleEventObserver{
             override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
                 if (event.targetState == Lifecycle.State.CREATED){
+
+                    //判断当前是否已经有存储的城市信息，如果有直接跳转到该城市的天气界面
+                    if(viewModel.isPlaceSaved()){
+                        val place = viewModel.getSavedPlace()
+
+                        val intent = Intent(context, WeatherActivity::class.java).apply {
+                            putExtra("location_lng", place.location.lng)
+                            putExtra("location_lat", place.location.lat)
+                            putExtra("place_name", place.name)
+                        }
+
+                        startActivity(intent)
+                        activity?.finish()
+                    }
+
                     //初始化RecyclerView
                     val layoutManager = LinearLayoutManager(activity)
                     binding.recyclerView.layoutManager = layoutManager

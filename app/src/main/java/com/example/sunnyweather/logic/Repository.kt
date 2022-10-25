@@ -1,6 +1,7 @@
 package com.example.sunnyweather.logic
 
 import androidx.lifecycle.liveData
+import com.example.sunnyweather.logic.dao.PlaceDao
 import com.example.sunnyweather.logic.model.Place
 import com.example.sunnyweather.logic.model.Weather
 import com.example.sunnyweather.logic.network.SunnyWeatherNetwork
@@ -61,6 +62,16 @@ object Repository {
         }
         emit(result)
     }
+
+    //提供保存，和获取城市数据的接口
+    //其实这里的实现方式并不标准，因为即使是对SharedPreferences文件进行读写的操作，也是不太建议在主线程进行
+    //最佳的实现方式肯定是开一个线程来执行这些比较耗时的任务，然后通过LiveData对象进行数据返回。
+    fun savePlace(place: Place) = PlaceDao.savePlace(place)
+
+    fun getSavedPlace() = PlaceDao.getSavedPlace()
+
+    fun isPlaceSaved() = PlaceDao.isPlaceSaved()
+
 
 }
 
