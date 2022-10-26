@@ -23,6 +23,7 @@ import com.example.sunnyweather.databinding.NowBinding
 import com.example.sunnyweather.logic.model.Weather
 import com.example.sunnyweather.logic.model.getSky
 import com.example.sunnyweather.setStatusBarTextColor
+import com.example.sunnyweather.setStatusBarVisible
 import com.example.sunnyweather.showToast
 import com.example.sunnyweather.ui.place.WeatherViewModel
 import java.text.SimpleDateFormat
@@ -34,7 +35,6 @@ class WeatherActivity : AppCompatActivity() {
 
     lateinit var weatherBind:ActivityWeatherBinding
 
-
   override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         weatherBind = ActivityWeatherBinding.inflate(layoutInflater)
@@ -45,7 +45,7 @@ class WeatherActivity : AppCompatActivity() {
         }
         setStatusBarTextColor(this,Color.TRANSPARENT)
         WindowCompat.setDecorFitsSystemWindows(window,false)
-
+        setStatusBarVisible(this,false)
         setContentView(weatherBind.root)
 
         if (viewModel.locationLng.isEmpty()){
