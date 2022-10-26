@@ -15,6 +15,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.sunnyweather.MainActivity
 import com.example.sunnyweather.SunnyWeatherApplication
 import com.example.sunnyweather.databinding.FragmentPlaceBinding
 import com.example.sunnyweather.showToast
@@ -51,7 +52,7 @@ class PlaceFragment:Fragment() {
                 if (event.targetState == Lifecycle.State.CREATED){
 
                     //判断当前是否已经有存储的城市信息，如果有直接跳转到该城市的天气界面
-                    if(viewModel.isPlaceSaved()){
+                    if(activity is MainActivity && viewModel.isPlaceSaved()){
                         val place = viewModel.getSavedPlace()
 
                         val intent = Intent(context, WeatherActivity::class.java).apply {

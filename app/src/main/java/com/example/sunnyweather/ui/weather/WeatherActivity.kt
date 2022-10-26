@@ -1,14 +1,18 @@
 package com.example.sunnyweather.ui.weather
 
+import android.content.Context
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.Window
+import android.view.inputmethod.InputMethodManager
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.sunnyweather.R
@@ -21,28 +25,19 @@ import com.example.sunnyweather.logic.model.getSky
 import com.example.sunnyweather.setStatusBarTextColor
 import com.example.sunnyweather.showToast
 import com.example.sunnyweather.ui.place.WeatherViewModel
-import org.w3c.dom.Text
 import java.text.SimpleDateFormat
 import java.util.*
 
 class WeatherActivity : AppCompatActivity() {
 
-    private val viewModel by lazy { ViewModelProvider(this).get(WeatherViewModel::class.java) }
+    val viewModel by lazy { ViewModelProvider(this).get(WeatherViewModel::class.java) }
 
-    lateinit var bind:ActivityWeatherBinding
+    lateinit var weatherBind:ActivityWeatherBinding
 
-    lateinit var nowBind:NowBinding
-
-    lateinit var forecastBind:ForecastBinding
-
-    lateinit var lifeBind:LifeIndexBinding
 
   override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        bind = ActivityWeatherBinding.inflate(layoutInflater)
-        nowBind = NowBinding.inflate(layoutInflater)
-        forecastBind = ForecastBinding.inflate(layoutInflater)
-        lifeBind = LifeIndexBinding.inflate(layoutInflater)
+        weatherBind = ActivityWeatherBinding.inflate(layoutInflater)
 
         //让背景和状态栏融合到一起
         val window = this.window.apply {
@@ -51,7 +46,7 @@ class WeatherActivity : AppCompatActivity() {
         setStatusBarTextColor(this,Color.TRANSPARENT)
         WindowCompat.setDecorFitsSystemWindows(window,false)
 
-        setContentView(bind.root)
+        setContentView(weatherBind.root)
 
         if (viewModel.locationLng.isEmpty()){
             viewModel.locationLng = intent.getStringExtra("location_lng") ?: ""
@@ -71,29 +66,60 @@ class WeatherActivity : AppCompatActivity() {
               "无法成功获取天气信息".showToast(this)
               it.exceptionOrNull()?.printStackTrace()
           }
+            //获取刷新后的数据后，要将刷新按钮结束，并隐藏刷新进度条
+            weatherBind.swipeRefresh.isRefreshing = false
         })
-        viewModel.refreshWeather(viewModel.locationLng,viewModel.locationLat)
+      //设置刷新按钮逻辑，设置颜色以及设置刷新监听事件，一旦刷新，则刷新天气。
+      weatherBind.swipeRefresh.setColorSchemeResources(R.color.teal_200)
+      refreshWeather()
+      weatherBind.swipeRefresh.setOnRefreshListener {
+          refreshWeather()
+      }
+
+      val navBtn = findViewById<Button>(R.id.navBtn)
+
+      navBtn.setOnClickListener{
+          weatherBind.drawerLayout.openDrawer(GravityCompat.START)
+      }
+
+      weatherBind.drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener{
+
+          override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
+          }
+
+          override fun onDrawerOpened(drawerView: View) {
+          }
+
+          override fun onDrawerStateChanged(newState: Int) {
+          }
+
+          override fun onDrawerClosed(drawerView: View) {
+           //关闭滑动菜单的时候关闭输入法
+              val manager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+              manager.hideSoftInputFromWindow(drawerView.windowToken,InputMethodManager.HIDE_NOT_ALWAYS)
+          }
+      })
     }
 
     private fun showWeatherInfo(weather:Weather){
-        nowBind.placeName.text = viewModel.placeName
+        weatherBind.nowBind .placeName.text = viewModel.placeName
         val realtime = weather.realtime
         val daily = weather.daily
         //填充now布局中的数据
         val currentTempText = "${realtime.temperature.toInt()}℃"
-        nowBind.currentTemp.text = currentTempText
-        nowBind.currentSky.text = getSky(realtime.skycon).info
+        weatherBind.nowBind.currentTemp.text = currentTempText
+        weatherBind.nowBind.currentSky.text = getSky(realtime.skycon).info
         val currentPM25Text = "空气指数 ${realtime.airQuality.aqi.chn.toInt()}"
-        nowBind.currentAQI.text = currentPM25Text
-        nowBind.nowLayout.setBackgroundResource(getSky(realtime.skycon).bg)
+        weatherBind.nowBind.currentAQI.text = currentPM25Text
+        weatherBind.nowBind.nowLayout.setBackgroundResource(getSky(realtime.skycon).bg)
 
         //填充forecast布局中的数据
-        forecastBind.forecastLayout.removeAllViews()
+        weatherBind.forecastBind.forecastLayout.removeAllViews()
         val days = daily.skycon.size
         for (i in 0 until days){
             val skycon = daily.skycon[i]
             val temperature = daily.temperature[i]
-            val view = LayoutInflater.from(this).inflate(R.layout.forecast_item,forecastBind.forecastLayout,false)
+            val view = LayoutInflater.from(this).inflate(R.layout.forecast_item,weatherBind.forecastBind.forecastLayout,false)
             val dateInfo = view.findViewById(R.id.dateInfo) as TextView
             val sktIcon = view.findViewById(R.id.skyIcon) as ImageView
             val skyInfo = view.findViewById(R.id.skyInfo) as TextView
@@ -107,17 +133,21 @@ class WeatherActivity : AppCompatActivity() {
             val tempText = "${temperature.min.toInt()}~${temperature.max.toInt()}℃"
             temperatureInfo.text = tempText
             //将赋值完的view，添加到预报布局界面。
-            forecastBind.forecastLayout.addView(view)
+            weatherBind.forecastBind.forecastLayout.addView(view)
         }
 
         //填充life_index布局中的数据
         val lifeIndex = daily.lifeIndex
-        lifeBind.coldRiskText.text = lifeIndex.coldRisk[0].desc
-        lifeBind.dressingText.text = lifeIndex.dressing[0].desc
-        lifeBind.ultravioletText.text = lifeIndex.ultraviolet[0].desc
-        lifeBind.carWashText.text = lifeIndex.carWashing[0].desc
-        bind.weatherLayout.visibility = View.VISIBLE
+        weatherBind.lifeBind.coldRiskText.text = lifeIndex.coldRisk[0].desc
+        weatherBind.lifeBind.dressingText.text = lifeIndex.dressing[0].desc
+        weatherBind.lifeBind.ultravioletText.text = lifeIndex.ultraviolet[0].desc
+        weatherBind.lifeBind.carWashText.text = lifeIndex.carWashing[0].desc
+        weatherBind.weatherLayout.visibility = View.VISIBLE
     }
 
-
+    //刷新天气
+    fun refreshWeather(){
+        viewModel.refreshWeather(viewModel.locationLng,viewModel.locationLat)
+        weatherBind.swipeRefresh.isRefreshing = true
+    }
 }
