@@ -55,3 +55,25 @@ fun getStatusBarHeight(activity: Activity):Int{
     return result
 }
 ```
+本项目的沉浸式布局的处理方法
+```kotlin
+//让背景和状态栏融合到一起，沉浸式布局
+        val window = this.window.apply {
+            statusBarColor = Color.TRANSPARENT
+        }
+        setStatusBarTextColor(this,Color.TRANSPARENT)
+        //false表示沉浸，true表示不沉浸
+        WindowCompat.setDecorFitsSystemWindows(window,false)
+        setStatusBarVisible(this,false)
+
+//因为这里使用到的是FrameLayout并不会对我们的布局控件进行偏移处理，会导致控件和状态栏覆盖，这里的处理方法是这样
+ val navBtn = findViewById<Button>(R.id.navBtn)
+      //借助setOnApplyWindowInsetsListener函数去监听Windowsets发生变化的时间，当有监听到发生变化的时候，我们可       以读取顶部insets的大小，然后对控件进行偏移
+      //这个方法是因为FrameLayout不会对我们的控件进行偏移，所以需要我们自己去偏移，否则会有些不兼容的效果
+      ViewCompat.setOnApplyWindowInsetsListener(navBtn){view,insets->
+          val params = view.layoutParams as FrameLayout.LayoutParams
+          params.topMargin = getStatusBarHeight(this)
+          insets
+      }
+
+```

@@ -10,10 +10,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
@@ -41,13 +43,15 @@ class WeatherActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         weatherBind = ActivityWeatherBinding.inflate(layoutInflater)
 
-        //让背景和状态栏融合到一起
+        //让背景和状态栏融合到一起，沉浸式布局
         val window = this.window.apply {
             statusBarColor = Color.TRANSPARENT
         }
         setStatusBarTextColor(this,Color.TRANSPARENT)
+        //false表示沉浸，true表示不沉浸
         WindowCompat.setDecorFitsSystemWindows(window,false)
         setStatusBarVisible(this,false)
+
         setContentView(weatherBind.root)
 
         if (viewModel.locationLng.isEmpty()){
@@ -81,6 +85,13 @@ class WeatherActivity : AppCompatActivity() {
       }
 
       val navBtn = findViewById<Button>(R.id.navBtn)
+      //借助setOnApplyWindowInsetsListener函数去监听Windowsets发生变化的时间，当有监听到发生变化的时候，我们可以读取顶部insets的大小，然后对控件进行偏移
+      //这个方法是因为FrameLayout不会对我们的控件进行偏移，所以需要我们自己去偏移，否则会有些不兼容的效果
+      ViewCompat.setOnApplyWindowInsetsListener(navBtn){view,insets->
+          val params = view.layoutParams as FrameLayout.LayoutParams
+          params.topMargin = getStatusBarHeight(this)
+          insets
+      }
 
       navBtn.setOnClickListener{
           weatherBind.drawerLayout.openDrawer(GravityCompat.START)
