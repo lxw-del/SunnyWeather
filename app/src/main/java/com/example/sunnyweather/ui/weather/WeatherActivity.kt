@@ -1,30 +1,30 @@
 package com.example.sunnyweather.ui.weather
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.example.sunnyweather.R
+import com.example.sunnyweather.*
 import com.example.sunnyweather.databinding.ActivityWeatherBinding
 import com.example.sunnyweather.databinding.ForecastBinding
 import com.example.sunnyweather.databinding.LifeIndexBinding
 import com.example.sunnyweather.databinding.NowBinding
 import com.example.sunnyweather.logic.model.Weather
 import com.example.sunnyweather.logic.model.getSky
-import com.example.sunnyweather.setStatusBarTextColor
-import com.example.sunnyweather.setStatusBarVisible
-import com.example.sunnyweather.showToast
 import com.example.sunnyweather.ui.place.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -34,6 +34,8 @@ class WeatherActivity : AppCompatActivity() {
     val viewModel by lazy { ViewModelProvider(this).get(WeatherViewModel::class.java) }
 
     lateinit var weatherBind:ActivityWeatherBinding
+
+
 
   override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,8 +61,10 @@ class WeatherActivity : AppCompatActivity() {
         }
 
         viewModel.weatherLiveData.observe(this, Observer {
-          val weather = it.getOrNull()
+            val weather = it.getOrNull()
           if (weather != null){
+              val bitmap = BitmapFactory.decodeResource(resources, getSky(weather.realtime.skycon).bg)
+              getBackgroundColor(bitmap,this, getScreenWidth(this), getStatusBarHeight(this))
               showWeatherInfo(weather)
           }else{
               "无法成功获取天气信息".showToast(this)
@@ -112,6 +116,8 @@ class WeatherActivity : AppCompatActivity() {
         val currentPM25Text = "空气指数 ${realtime.airQuality.aqi.chn.toInt()}"
         weatherBind.nowBind.currentAQI.text = currentPM25Text
         weatherBind.nowBind.nowLayout.setBackgroundResource(getSky(realtime.skycon).bg)
+
+
 
         //填充forecast布局中的数据
         weatherBind.forecastBind.forecastLayout.removeAllViews()
